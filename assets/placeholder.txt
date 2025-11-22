@@ -1,0 +1,1 @@
+all game assets will go in this folder. as soon as an asset is added, this file should be deleted since it was only createde for the folder.
