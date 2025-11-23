@@ -1,7 +1,9 @@
 import pygame
 
+V_THRESHOLD = 0.1
+ACCELERATION = 0.2
 class Player(pygame.sprite.Sprite):
-    def __init__(self, starting_pos = (0, 0), move_speed = 1, starting_items: list = [], starting_health: int = 3):
+    def __init__(self, starting_pos = (0, 0), move_speed : float = 10, starting_items: list = [], starting_health: int = 3):
         super().__init__()
         self.image = pygame.image.load("assets/player.png").convert()
         self.image.set_colorkey((0, 0, 0))
@@ -9,10 +11,10 @@ class Player(pygame.sprite.Sprite):
         self.rect.topleft = starting_pos
 
         self.direction_x = True #0 for left, 1 for right
-        self.direction_y = True #0 for up, 1 for down
+
         self.velocity = pygame.math.Vector2(0, 0)
         self.acceleration = pygame.math.Vector2(0,0)
-        self.speed = 10
+        self.speed = move_speed
 
         self.MAXHP = 3
         self.hp = starting_health
@@ -21,18 +23,24 @@ class Player(pygame.sprite.Sprite):
     def update(self, surface_friction: float = 0.2):
 
         self.acceleration = pygame.math.Vector2(0,0)
-        current_acceleration = self.speed/10
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-            self.acceleration.x = -current_acceleration
+            self.acceleration.x = -ACCELERATION
         if keys[pygame.K_RIGHT]:
-            self.acceleration.x = current_acceleration
+            self.acceleration.x = ACCELERATION
         if keys[pygame.K_UP]:
-            self.acceleration.y = -current_acceleration
+            self.acceleration.y = -ACCELERATION
         if keys[pygame.K_DOWN]:
-            self.acceleration.y = current_acceleration
+            self.acceleration.y = ACCELERATION
+
+        if self.acceleration.magnitude() > 0:
+            self.acceleration.normalize_ip()
+
+        if self.velocity.magnitude() < V_THRESHOLD:
+            self.velocity = pygame.math.Vector2(0,0)
 
         self.acceleration -= self.velocity * surface_friction
         self.velocity += self.acceleration
         self.rect.topleft += self.velocity + (0.5 * self.acceleration)
+    
