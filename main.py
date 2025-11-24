@@ -4,6 +4,7 @@
 
 import pygame, random, sys
 from classes.player import Player
+from classes.enemy import Hound, AirTurret, DeathBot
 
 pygame.init()
 
@@ -25,6 +26,9 @@ clock = pygame.time.Clock()
 player_group = pygame.sprite.Group()
 player_group.add(player)
 
+enemy_group = pygame.sprite.Group()
+enemy_group.add(Hound(1))
+
 running = True
 while running:
 
@@ -40,13 +44,10 @@ while running:
 
     text = font.render(f"velX: {player.velocity.x}", True, GREEN)
     screen.blit(text, (0, 0))
-
     text = font.render(f"velY: {player.velocity.y}", True, GREEN)
     screen.blit(text, (0, 20))
-
     text = font.render(f"accX: {player.acceleration.x}", True, RED)
     screen.blit(text, (250, 0))
-
     text = font.render(f"accY: {player.acceleration.y}", True, RED)
     screen.blit(text, (250, 20))
 
