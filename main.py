@@ -46,7 +46,7 @@ while running:
 
     text = font.render(f"accX: {player.acceleration.x}", True, RED)
     screen.blit(text, (250, 0))
-    
+
     text = font.render(f"accY: {player.acceleration.y}", True, RED)
     screen.blit(text, (250, 20))
 

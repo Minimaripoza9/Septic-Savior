@@ -3,7 +3,7 @@ import pygame
 V_THRESHOLD = 0.1
 ACCELERATION = 0.2
 class Player(pygame.sprite.Sprite):
-    def __init__(self, starting_pos = (0, 0), move_speed : float = 10, starting_items: list = [], starting_health: int = 3):
+    def __init__(self, starting_pos = (0, 0), move_speed : float = 1, starting_items: list = [], starting_health: int = 3):
         super().__init__()
         self.image = pygame.image.load("assets/player.png").convert()
         self.image.set_colorkey((0, 0, 0))
@@ -14,7 +14,7 @@ class Player(pygame.sprite.Sprite):
 
         self.velocity = pygame.math.Vector2(0, 0)
         self.acceleration = pygame.math.Vector2(0,0)
-        self.speed = move_speed
+        self.speed_mult = move_speed
 
         self.MAXHP = 3
         self.hp = starting_health
@@ -22,6 +22,7 @@ class Player(pygame.sprite.Sprite):
 
     def update(self, surface_friction: float = 0.2):
 
+        #movment
         self.acceleration = pygame.math.Vector2(0,0)
 
         keys = pygame.key.get_pressed()
@@ -35,10 +36,10 @@ class Player(pygame.sprite.Sprite):
             self.acceleration.y = ACCELERATION
 
         if self.acceleration.magnitude() > 0:
-            self.acceleration.normalize_ip()
-
+            self.acceleration = self.acceleration.normalize() * self.speed_mult
+        
         if self.velocity.magnitude() < V_THRESHOLD:
-            self.velocity = pygame.math.Vector2(0,0)
+            self.velocity = pygame.math.Vector2(0, 0)
 
         self.acceleration -= self.velocity * surface_friction
         self.velocity += self.acceleration
