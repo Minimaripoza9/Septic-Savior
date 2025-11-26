@@ -2,18 +2,19 @@
 
 import pygame
 
-MAX_LEVEL = 100
+MAX_LEVEL = 50 #not actually a hard level cap. just a point of reference
 
-def lerp(a, b, weight) -> float:
+def lerp(a, b, weight) -> float: #ill be used to calculate enemy stats depending on current level
     return a + (b - a) * weight
 
 #enemy parent class
 class Enemy(pygame.sprite.Sprite): 
     def __init__(self, start_pos: tuple, rect : pygame.rect.Rect, max_health : int, move_speed: float, current_level : int = 1):
         super().__init__()
-        self.hp = max_health
+        self.MAX_HP = max_health
         self.lv = current_level
-        self.stopped = False
+        self.hp = int(lerp(1, self.MAX_HP, self.lv/MAX_LEVEL))
+        self.stopped = False #will be used to make boss stop during attacks and also freeze enemies
         self.rect = rect
         self.rect.topleft = start_pos
 
@@ -22,11 +23,17 @@ class Enemy(pygame.sprite.Sprite):
         self.speed_mult = move_speed
 
     def update(self, player_position: tuple):
+        self.acceleration = pygame.math.Vector2(player_position[0]-self.rect.center[0],player_position[1]-self.rect.center[1]).normalize_ip()
         if not self.stopped:
             player_position
 
+    def level_up(self, level_modifier : int = 1):
+        self.lv += level_modifier
+        self.hp = int(lerp(1, self.MAX_HP, self.lv/MAX_LEVEL))
+
+
     def hit(self, damage):
-        self.hp -= damage * resistance:
+        self.hp -= damage 
 
 
 #child classes

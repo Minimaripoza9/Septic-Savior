@@ -2,9 +2,11 @@
 # By Rose Hernandez and Sadie Ocasio
 #    840-XX-XXXX        840-24-6574
 
+#NOTE: rose por favor pon tu numero de estudiante
+
 import pygame, random, sys
 from classes.player import Player
-from classes.enemy import Hound, AirTurret, DeathBot
+#from classes.enemy import Hound, AirTurret, DeathBot
 
 pygame.init()
 
@@ -27,7 +29,7 @@ player_group = pygame.sprite.Group()
 player_group.add(player)
 
 enemy_group = pygame.sprite.Group()
-enemy_group.add(Hound(1))
+#enemy_group.add(Hound(1))
 
 running = True
 while running:
