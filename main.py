@@ -1,8 +1,6 @@
 # SEPTIC SAVIOR
 # By Rose Hernandez and Sadie Ocasio
-#    840-XX-XXXX        840-24-6574
-
-#NOTE: rose por favor pon tu numero de estudiante
+#    840-22-7356        840-24-6574
 
 import pygame, random, sys
 from classes.player import Player
@@ -20,10 +18,11 @@ screen = pygame.display.set_mode(screen_rect.bottomright, 0, 32)
 
 font = pygame.font.SysFont("Arial", 10)
 
-player = Player(screen_rect.center)
-
 FPS = 60
 clock = pygame.time.Clock()
+metronome = 0
+
+player = Player(screen_rect.center, FPS)
 
 player_group = pygame.sprite.Group()
 player_group.add(player)
@@ -41,7 +40,7 @@ while running:
             
     screen.blit(bg_img, screen_rect)
 
-    player_group.update()
+    player_group.update(metronome)
     player_group.draw(screen)
 
     text = font.render(f"velX: {player.velocity.x}", True, GREEN)
@@ -52,7 +51,12 @@ while running:
     screen.blit(text, (250, 0))
     text = font.render(f"accY: {player.acceleration.y}", True, RED)
     screen.blit(text, (250, 20))
+    text = font.render(f"Frame: {metronome}", True, BLUE)
+    screen.blit(text, (400, 0))
 
     pygame.display.update()
     clock.tick(FPS)
+    metronome += 1
+    if metronome > FPS:
+        metronome = 0
 

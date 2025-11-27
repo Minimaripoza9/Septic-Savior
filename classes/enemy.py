@@ -1,11 +1,19 @@
+#TODO: add animations
+
 #enemy classes
 
 import pygame
 
-MAX_LEVEL = 50 #not actually a hard level cap. just a point of reference
+MAX_LEVEL = 50 #not actually a hard level cap, just a point of reference
+VELOCITY_THRESHOLD = 0.1
+DEFAULT_FRICTION = 0.2
 
-def lerp(a, b, weight) -> float: #ill be used to calculate enemy stats depending on current level
-    return a + (b - a) * weight
+load = pygame.image.load
+vec2 = pygame.math.Vector2
+
+#custom lerp function that can return numbers outside the [0, 1] range
+def lerp(stat_min, stat_max, level_fraction: float) -> float: #will be used to calculate enemy stats depending on current level
+    return stat_min + (stat_max - stat_min) * level_fraction
 
 #enemy parent class
 class Enemy(pygame.sprite.Sprite): 
@@ -16,16 +24,24 @@ class Enemy(pygame.sprite.Sprite):
         self.hp = int(lerp(1, self.MAX_HP, self.lv/MAX_LEVEL))
         self.stopped = False #will be used to make boss stop during attacks and also freeze enemies
         self.rect = rect
-        self.rect.topleft = start_pos
+        self.rect.center = start_pos
 
-        self.velocity = pygame.math.Vector2(0, 0)
-        self.acceleration = pygame.math.Vector2(0,0)
+        self.velocity = vec2(0, 0)
+        self.acceleration = vec2(0, 0)
         self.speed_mult = move_speed
 
-    def update(self, player_position: tuple):
-        self.acceleration = pygame.math.Vector2(player_position[0]-self.rect.center[0],player_position[1]-self.rect.center[1]).normalize_ip()
-        if not self.stopped:
-            player_position
+    def update(self, player_position: tuple, surface_friction : float = DEFAULT_FRICTION):
+        self.acceleration = vec2(player_position[0]-self.rect.center[0],player_position[1]-self.rect.center[1]) * (not self.stopped)
+        
+        if self.acceleration.magnitude() > 0:
+            self.acceleration = self.acceleration.normalize() * self.speed_mult
+
+        elif self.velocity.magnitude() < VELOCITY_THRESHOLD:
+            self.velocity = vec2(0, 0)
+
+        self.acceleration -= self.velocity * surface_friction
+        self.velocity += self.acceleration
+        self.rect.topleft += self.velocity + (0.5 * self.acceleration)
 
     def level_up(self, level_modifier : int = 1):
         self.lv += level_modifier
@@ -33,8 +49,7 @@ class Enemy(pygame.sprite.Sprite):
 
 
     def hit(self, damage):
-        self.hp -= damage 
-
+        self.hp -= damage * self.armor_percent
 
 #child classes
 
@@ -48,18 +63,18 @@ BIG_HP = 500000
 
 class Hound(Enemy):
     def __init__(self, starting_pos, level = 1):
-        self.image = pygame.image.load("dog.png")
-        super().__init__(starting_pos, self.image.get_rect(), DOG_HP, DOG_SPEED, level)
+        self.walk_anim = [load("dog.png")]
+        super().__init__(starting_pos, self.walk_anim[0].get_rect(), DOG_HP, DOG_SPEED, level)
         
 
 class AirTurret(Enemy):
     def __init__(self, starting_pos, level = 20):
-        self.image = pygame.image.load("turret.png")
-        super().__init__(starting_pos, self.image.get_rect(), AIR_HP, AIR_SPEED, level)
+        self.walk_anim = [load("turret.png")]
+        super().__init__(starting_pos, self.walk_anim[0].get_rect(), AIR_HP, AIR_SPEED, level)
 
 #will have far more animations than the basic enemies
 class DeathBot(Enemy):
     def __init__(self, starting_pos, level = 50):
-        self.image = pygame.image.load("boss.png")
-        super().__init__(starting_pos, self.image.get_rect(), BIG_HP, BIG_SPEED, level)
+        self.walk_anim = [load("boss.png")]
+        super().__init__(starting_pos, self.walk_anim[0].get_rect(), BIG_HP, BIG_SPEED, level)
         
