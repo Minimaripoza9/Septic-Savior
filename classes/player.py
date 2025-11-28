@@ -1,16 +1,22 @@
 import pygame
 from classes.animation import Animation
 
-VELOCITY_THRESHOLD = 0.001
+VELOCITY_THRESHOLD = 0.01
 DEFAULT_FRICTION = 0.2
+
 WALK_FRAMES = 4
 IDLE_FRAMES = 8
+DEATH_FRAMES = 8
+
+WALK_MILLISECONDS = 200
+IDLE_MILLISECONDS = 400
+DEATH_MILLISECONDS = 600
+
+LEFT: bool = 1
+RIGHT: bool = 0
 
 load = pygame.image.load
 vec2 = pygame.math.Vector2
-
-def frame_index(metronome, total_fps,  desired_FPS, Frame_total, turn: bool) -> int:
-    return int(metronome * total_fps/desired_FPS) % Frame_total + (Frame_total * turn)
 
 def intlerp(a, b, weight) :
     return int(a + (a - b) * weight)
@@ -20,26 +26,26 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
 
         #sprite management
-        walk_right = [load(f"assets/player_run/pixil-frame-{i}.png").convert() for i in range(4)]
-        walk_left = []
+        walk_frames = [load(f"assets/player_anims/player_run-{i}.png").convert() for i in range(WALK_FRAMES)]
+        idle_frames = [load(f"assets/player_anims/player_idle-{i}.png").convert() for i in range(IDLE_FRAMES)]
+        #death_frames = [load(f"assets/player_anims/player_death-{i}.png").convert() for i in range(DEATH_FRAMES)]
 
-        self.walk_right = Animation("assets/player_run/pixil-frame-", "png", 8, 200)
+        self.walk = [Animation, Animation]
+        self.walk[RIGHT] = Animation(walk_frames, WALK_MILLISECONDS).set_colorkey_all("#FFFFFF")
+        self.walk[LEFT] = self.walk[RIGHT].flip_frames(True)
+
+        self.idle = [Animation, Animation]
+        self.idle[RIGHT] = Animation(idle_frames, IDLE_MILLISECONDS).set_colorkey_all("#000000")
+        self.idle[LEFT] = self.idle[RIGHT].flip_frames(True)
+
+        #self.death = [Animation, Animation]
+        #self.death[RIGHT] = Animation(death_frames, DEATH_MILLISECONDS).set_colorkey_all("#FFFFFF")
+        #self.death[LEFT] = self.death[RIGHT].flip_frames(True)
         
-        for frame in walk_right:
-            frame.set_colorkey("#FFFFFF")
-            walk_left.append(pygame.transform.flip(frame, True, False))
-
-        idle_right = [load(f"assets/player_idle/pixil-frame-{i}.png").convert() for i in range(8)]
-        idle_left = []
-
-        for frame in idle_right:
-            frame.set_colorkey("#FFFFFF") 
-            idle_left.append(pygame.transform.flip(frame, True, False))
-        
-        self.image = self.idle_right[0]
+        self.image: pygame.Surface = self.idle[RIGHT].update()
 
         self.stopwatch = pygame.time.get_ticks()
-        self.rect = self.walk_right[0].get_rect()
+        self.rect = self.image.get_rect()
         self.rect.center = starting_pos
 
         self.turn = True #1 for left, 0 for right
@@ -62,16 +68,14 @@ class Player(pygame.sprite.Sprite):
         #reset acceleration vector
         self.acceleration = vec2(0, 0)
 
-        self.metronome %= self.FPS
-
         #check for player movement
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.acceleration.x = -acceleration
-            self.turn = True
+            self.turn = LEFT
         if keys[pygame.K_RIGHT]:
             self.acceleration.x = acceleration
-            self.turn = False
+            self.turn = RIGHT
         if keys[pygame.K_UP]:
             self.acceleration.y = -acceleration
         if keys[pygame.K_DOWN]:
@@ -79,11 +83,11 @@ class Player(pygame.sprite.Sprite):
 
         if self.acceleration.magnitude() > 0: #player is moving
             self.acceleration = self.acceleration.normalize() * self.speed_mult
-            self.image = self.walk_right[intlerp(0, 8, self.metronome/self.FPS)]
+            self.image = self.walk[self.turn].update()
         
         elif self.velocity.magnitude() < VELOCITY_THRESHOLD: #player is not moving
             self.velocity = vec2(0, 0)
-            self.image = self.idle_right[intlerp(0, 4, self.metronome/self.FPS)]
+            self.image = self.idle[self.turn].update()
 
         self.acceleration -= self.velocity * surface_friction
         self.velocity += self.acceleration
