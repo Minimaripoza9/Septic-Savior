@@ -1,5 +1,6 @@
 import pygame
 from classes.animation import Animation
+from classes.bullet import Bullet
 
 VELOCITY_THRESHOLD = 0.01
 DEFAULT_FRICTION = 0.2
@@ -12,8 +13,10 @@ WALK_MILLISECONDS = 200
 IDLE_MILLISECONDS = 400
 DEATH_MILLISECONDS = 600
 
-LEFT: bool = 1
-RIGHT: bool = 0
+BULLET_SPEED = 5
+
+LEFT: bool = 0
+RIGHT: bool = 1
 
 load = pygame.image.load
 vec2 = pygame.math.Vector2
@@ -22,13 +25,13 @@ def intlerp(a, b, weight) :
     return int(a + (a - b) * weight)
                                                            
 class Player(pygame.sprite.Sprite):
-    def __init__(self, starting_pos : tuple, FPS: int, speed_multiplier : float = 0.2, starting_items: list = [], starting_health: int = 3, starting_level: int = 1):
+    def __init__(self, starting_pos : tuple, FPS: int, speed_multiplier : float = 0.3, starting_items: list = [], starting_health: int = 3, starting_level: int = 1):
         super().__init__()
 
         #sprite management
-        walk_frames = [load(f"assets/player_anims/player_run-{i}.png").convert() for i in range(WALK_FRAMES)]
-        idle_frames = [load(f"assets/player_anims/player_idle-{i}.png").convert() for i in range(IDLE_FRAMES)]
-        #death_frames = [load(f"assets/player_anims/player_death-{i}.png").convert() for i in range(DEATH_FRAMES)]
+        walk_frames = [load(f"assets/PLAYER/player_run-{i}.png").convert() for i in range(WALK_FRAMES)]
+        idle_frames = [load(f"assets/PLAYER/player_idle-{i}.png").convert() for i in range(IDLE_FRAMES)]
+        #death_frames = [load(f"assets/PLAYER/player_death-{i}.png").convert() for i in range(DEATH_FRAMES)]
 
         self.walk = [Animation, Animation]
         self.walk[RIGHT] = Animation(walk_frames, WALK_MILLISECONDS).set_colorkey_all("#FFFFFF")
@@ -54,6 +57,8 @@ class Player(pygame.sprite.Sprite):
         #movement
         self.velocity = vec2(0, 0)
         self.acceleration = vec2(0, 0)
+        self.bullet_group = pygame.sprite.Group()
+        self.invincibility = 0
 
         #stats
         self.speed_mult = speed_multiplier
@@ -80,6 +85,9 @@ class Player(pygame.sprite.Sprite):
             self.acceleration.y = -acceleration
         if keys[pygame.K_DOWN]:
             self.acceleration.y = acceleration
+        if (keys[pygame.K_SPACE]) or keys[pygame.MOUSEBUTTONDOWN]:
+            self.shoot()
+
 
         if self.acceleration.magnitude() > 0: #player is moving
             self.acceleration = self.acceleration.normalize() * self.speed_mult
@@ -89,7 +97,23 @@ class Player(pygame.sprite.Sprite):
             self.velocity = vec2(0, 0)
             self.image = self.idle[self.turn].update()
 
+        
+
         self.acceleration -= self.velocity * surface_friction
         self.velocity += self.acceleration
         self.rect.center += self.velocity + (0.5 * self.acceleration)
+
+    def shoot(self):
+        self.bullet_group.add(Bullet(BULLET_SPEED, self.rect.center, pygame.mouse.get_pos(), True))
+
+    def hit(self):
+        if self.invincibility > 0:
+            self.hp -=1
+        if self.hp < 1:
+            return True
+        return False
+
+
+
+    
     

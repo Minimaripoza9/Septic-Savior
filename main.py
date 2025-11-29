@@ -4,7 +4,7 @@
 
 import pygame, random, sys
 from classes.player import Player
-#from classes.enemy import Hound, AirTurret, DeathBot
+from classes.enemy import Boss#, Drone, Hound
 
 pygame.init()
 
@@ -22,17 +22,16 @@ FPS = 60
 clock = pygame.time.Clock()
 metronome = 0
 
-player = Player(screen_rect.center, FPS)
+stringbean = Player(screen_rect.center, FPS)
 
 player_group = pygame.sprite.Group()
-player_group.add(player)
+player_group.add(stringbean)
 
 enemy_group = pygame.sprite.Group()
-#enemy_group.add(Hound(1))
+enemy_group.add(Boss((0, 0)))
 
 running = True
 while running:
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -40,19 +39,46 @@ while running:
             
     screen.blit(bg_img, screen_rect)
 
-    player_group.update(metronome)
+    player_group.update()
     player_group.draw(screen)
 
-    text = font.render(f"velX: {player.velocity.x}", True, GREEN)
+    player_hit = pygame.sprite.spritecollide(stringbean, enemy_group, False)
+    if player_hit.__len__():
+        stringbean.hp -=1
+        invincibility_timer = 5
+
+
+
+    stringbean.bullet_group.update()
+    stringbean.bullet_group.draw(screen)
+
+    enemy_group.update(stringbean.rect.center)
+    enemy_group.draw(screen)
+
+    text = font.render(f"velX: {stringbean.velocity.x}", True, GREEN)
     screen.blit(text, (0, 0))
-    text = font.render(f"velY: {player.velocity.y}", True, GREEN)
+    text = font.render(f"velY: {stringbean.velocity.y}", True, GREEN)
     screen.blit(text, (0, 20))
-    text = font.render(f"accX: {player.acceleration.x}", True, RED)
+    text = font.render(f"accX: {stringbean.acceleration.x}", True, RED)
     screen.blit(text, (250, 0))
-    text = font.render(f"accY: {player.acceleration.y}", True, RED)
+    text = font.render(f"accY: {stringbean.acceleration.y}", True, RED)
     screen.blit(text, (250, 20))
     text = font.render(f"Frame: {metronome}", True, BLUE)
     screen.blit(text, (400, 0))
+    text = font.render(f"accY: {stringbean.hp}", True, RED)
+    screen.blit(text, (250, 40))
+
+    for enemy in enemy_group:
+        text = font.render(f"velX: {enemy.velocity.x}", True, GREEN)
+        screen.blit(text, (0, 400))
+        text = font.render(f"velY: {enemy.velocity.y}", True, GREEN)
+        screen.blit(text, (0, 420))
+        text = font.render(f"velM: {enemy.velocity.magnitude()}", True, GREEN)
+        screen.blit(text, (0, 440))
+        text = font.render(f"accX: {enemy.acceleration.x}", True, RED)
+        screen.blit(text, (250, 400))
+        text = font.render(f"accY: {enemy.acceleration.y}", True, RED)
+        screen.blit(text, (250, 420))
 
     pygame.display.update()
     clock.tick(FPS)
