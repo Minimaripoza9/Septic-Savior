@@ -9,11 +9,14 @@ WALK_FRAMES = 4
 IDLE_FRAMES = 8
 DEATH_FRAMES = 8
 
+MAX_STAMINA = 100
+
 WALK_MILLISECONDS = 200
 IDLE_MILLISECONDS = 400
 DEATH_MILLISECONDS = 600
 
 BULLET_SPEED = 5
+FIRE_RATE = 200
 
 LEFT: bool = 0
 RIGHT: bool = 1
@@ -23,6 +26,9 @@ vec2 = pygame.math.Vector2
 
 def intlerp(a, b, weight) :
     return int(a + (a - b) * weight)
+
+def clamp(val, min_value, max_value):
+    return max(min(val, max_value), min_value)
                                                            
 class Player(pygame.sprite.Sprite):
     def __init__(self, starting_pos : tuple, FPS: int, speed_multiplier : float = 0.3, starting_items: list = [], starting_health: int = 3, starting_level: int = 1):
@@ -51,8 +57,11 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = starting_pos
 
+        self.stamina = MAX_STAMINA
+
         self.turn = True #1 for left, 0 for right
         self.FPS = FPS
+        self.ticks = pygame.time.get_ticks()
 
         #movement
         self.velocity = vec2(0, 0)
@@ -66,31 +75,44 @@ class Player(pygame.sprite.Sprite):
         self.hp = starting_health
         self.items = starting_items
         self.level = starting_level
-        self.damage_mult = 1.0
+        self.damage = 1.0
+        self.rof = FIRE_RATE
 
     def update(self, acceleration: float = 0.2, surface_friction: float = DEFAULT_FRICTION):
+
+        self.stamina = clamp(self.stamina, 0, MAX_STAMINA)
 
         #reset acceleration vector
         self.acceleration = vec2(0, 0)
 
+        if self.invincibility > 0:
+            self.invincibility -= 1
+
         #check for player movement
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+        mouse_buttons = pygame.mouse.get_pressed()
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.acceleration.x = -acceleration
             self.turn = LEFT
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             self.acceleration.x = acceleration
             self.turn = RIGHT
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             self.acceleration.y = -acceleration
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             self.acceleration.y = acceleration
-        if (keys[pygame.K_SPACE]) or keys[pygame.MOUSEBUTTONDOWN]:
+        if (keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]) and (self.stamina > 0):
+            speed = self.speed_mult * 1.5
+            self.stamina -= 1
+        else:
+            speed = self.speed_mult
+            self.stamina += 1
+        if (keys[pygame.K_SPACE]) or (mouse_buttons[0]):
             self.shoot()
 
 
         if self.acceleration.magnitude() > 0: #player is moving
-            self.acceleration = self.acceleration.normalize() * self.speed_mult
+            self.acceleration = self.acceleration.normalize() * speed
             self.image = self.walk[self.turn].update()
         
         elif self.velocity.magnitude() < VELOCITY_THRESHOLD: #player is not moving
@@ -104,11 +126,15 @@ class Player(pygame.sprite.Sprite):
         self.rect.center += self.velocity + (0.5 * self.acceleration)
 
     def shoot(self):
-        self.bullet_group.add(Bullet(BULLET_SPEED, self.rect.center, pygame.mouse.get_pos(), True))
+        now = pygame.time.get_ticks()
+        if now - self.ticks > self.rof:
+            self.ticks = now
+            self.bullet_group.add(Bullet(BULLET_SPEED, 200, self.rect.center, pygame.mouse.get_pos(), True))
 
     def hit(self):
-        if self.invincibility > 0:
+        if self.invincibility == 0:
             self.hp -=1
+            self.invincibility = 100
         if self.hp < 1:
             return True
         return False

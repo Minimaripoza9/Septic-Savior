@@ -6,11 +6,11 @@ CREDITS:
 Programming
 
     Sadie A. Ocasio Román
-    Rose Hernandez
 
 Sprites and animation
 
     Oliviya Figueroa Nostranova
+    Sadie A. Ocasio Roman
 
 Sound Design
 
@@ -24,5 +24,8 @@ Art Direction
 
 General Direction
 
-    Rose Hernandez
     Sadie A. Ocasio Román
+
+Sprite Tweaking
+
+    Rose Hernandez

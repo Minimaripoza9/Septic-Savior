@@ -73,7 +73,7 @@ class Enemy(pygame.sprite.Sprite):
         self.hp = int(lerp(1, self.MAX_HP, self.lv/MAX_LEVEL))
 
     def hit(self, damage):
-        self.hp -= damage * self.armor_percent
+        self.hp -= damage
 
 #child classes
 
@@ -108,10 +108,14 @@ class Hound(Enemy):
 class Drone(Enemy):
     def __init__(self, starting_pos, level = 20):
         walk_anim = [load(f"assets/DRONE/drone_walk-{i}.png").convert() for i in range(AIR_WALK_FRAMES)]
+        self.bullet_group = pygame.sprite.Group()
         super().__init__(starting_pos, walk_anim, AIR_ANIM_MILLISECONDS, AIR_HP, AIR_SPEED, level)
 
-    def shoot(self, player_pos: tuple):
-        return Bullet(5.0, self.rect.center, player_pos, False)
+    def shoot(self):
+        now = pygame.time.get_ticks()
+        if now - self.ticks > self.rof:
+            self.ticks = now
+            self.bullet_group.add(Bullet(AIR_SPEED, 200, self.rect.center, pygame.mouse.get_pos(), True))
 
 #will have far more animations than the basic enemies
 class Boss(Enemy):

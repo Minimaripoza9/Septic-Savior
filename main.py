@@ -2,6 +2,9 @@
 # By Rose Hernandez and Sadie Ocasio
 #    840-22-7356        840-24-6574
 
+#TODO: implement basic enemies
+#       
+
 import pygame, random, sys
 from classes.player import Player
 from classes.enemy import Boss#, Drone, Hound
@@ -44,9 +47,12 @@ while running:
 
     player_hit = pygame.sprite.spritecollide(stringbean, enemy_group, False)
     if player_hit.__len__():
-        stringbean.hp -=1
-        invincibility_timer = 5
+        stringbean.hit()
 
+    enemy_hit = pygame.sprite.groupcollide(enemy_group, stringbean.bullet_group, False, True)
+
+    for enemy in enemy_hit:
+        enemy.hit(stringbean.damage)
 
 
     stringbean.bullet_group.update()
@@ -55,6 +61,8 @@ while running:
     enemy_group.update(stringbean.rect.center)
     enemy_group.draw(screen)
 
+
+    #testing stuffs
     text = font.render(f"velX: {stringbean.velocity.x}", True, GREEN)
     screen.blit(text, (0, 0))
     text = font.render(f"velY: {stringbean.velocity.y}", True, GREEN)
@@ -65,7 +73,7 @@ while running:
     screen.blit(text, (250, 20))
     text = font.render(f"Frame: {metronome}", True, BLUE)
     screen.blit(text, (400, 0))
-    text = font.render(f"accY: {stringbean.hp}", True, RED)
+    text = font.render(f"HEALTH: {stringbean.hp}", True, RED)
     screen.blit(text, (250, 40))
 
     for enemy in enemy_group:
@@ -79,6 +87,9 @@ while running:
         screen.blit(text, (250, 400))
         text = font.render(f"accY: {enemy.acceleration.y}", True, RED)
         screen.blit(text, (250, 420))
+        text = font.render(f"HEALTH: {enemy.hp}", True, RED)
+        screen.blit(text, (250, 440))
+    #/testing stuffs
 
     pygame.display.update()
     clock.tick(FPS)
