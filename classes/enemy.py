@@ -2,7 +2,7 @@
 
 #enemy classes
 
-import pygame
+import pygame, random
 from classes.animation import Animation
 from classes.bullet import Bullet, Missile
 
@@ -74,18 +74,21 @@ class Enemy(pygame.sprite.Sprite):
 
     def hit(self, damage):
         self.hp -= damage
+        if self.hp < 1:
+            self.kill()
 
 #child classes
 
-DOG_HP = 1000
-DOG_SPEED = 10
+DOG_HP = 300
+DOG_SPEED = 5
 DOG_WALK_FRAMES = 4
 DOG_ANIM_MILLISECONDS = 100
 
-AIR_HP = 750
+AIR_HP = 250
 AIR_SPEED = 5
 AIR_WALK_FRAMES = 4
 AIR_ANIM_MILLISECONDS = 200
+AIR_FIRE_RATE = 500
 
 BIG_HP = 500000
 BIG_SPEED = 5
@@ -93,7 +96,7 @@ BIG_SPEED = 5
 BIG_WALK_FRAMES = 8
 BIG_PUNCH_FRAMES = 8
 BIG_BARRAGE_FRAMES = 8
-BIG_WALK_MILLISECONDS = 100
+BIG_WALK_MILLISECONDS = 200
 BIG_PUNCH_MILLISECONDS = 200
 BIG_BARRAGE_MILLISECONDS = 200
 BIG_MISSILE_DELAY = 100
@@ -104,18 +107,26 @@ class Hound(Enemy):
     def __init__(self, starting_pos, level = 1):
         walk_anim = [load(f"assets/HOUND/hound_walk-{i}.png").convert() for i in range(DOG_WALK_FRAMES)]
         super().__init__(starting_pos, walk_anim, DOG_ANIM_MILLISECONDS, DOG_HP, DOG_SPEED, level)
+        self.walk[RIGHT].set_colorkey_all("#000000")
+        self.walk[LEFT].set_colorkey_all("#000000")
         
 class Drone(Enemy):
     def __init__(self, starting_pos, level = 20):
         walk_anim = [load(f"assets/DRONE/drone_walk-{i}.png").convert() for i in range(AIR_WALK_FRAMES)]
         self.bullet_group = pygame.sprite.Group()
+        self.fire_rate = AIR_FIRE_RATE
+        self.shot_ticks = pygame.time.get_ticks()
         super().__init__(starting_pos, walk_anim, AIR_ANIM_MILLISECONDS, AIR_HP, AIR_SPEED, level)
 
-    def shoot(self):
+    def update(self, player_position, surface_friction = DEFAULT_FRICTION):
+        super().update(player_position, surface_friction)
+        self.shoot(player_position)
+        
+    def shoot(self, target):
         now = pygame.time.get_ticks()
-        if now - self.ticks > self.rof:
-            self.ticks = now
-            self.bullet_group.add(Bullet(AIR_SPEED, 200, self.rect.center, pygame.mouse.get_pos(), True))
+        if now - self.shot_ticks > self.fire_rate:
+            self.shot_ticks = now
+            self.bullet_group.add(Bullet(AIR_SPEED, 200, self.rect.center, target, True))
 
 #will have far more animations than the basic enemies
 class Boss(Enemy):

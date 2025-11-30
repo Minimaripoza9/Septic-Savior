@@ -2,12 +2,11 @@
 # By Rose Hernandez and Sadie Ocasio
 #    840-22-7356        840-24-6574
 
-#TODO: implement basic enemies
-#       
+#TODO: implement basic enemies      
 
 import pygame, random, sys
 from classes.player import Player
-from classes.enemy import Boss#, Drone, Hound
+from classes.enemy import Boss, Hound, Drone
 
 pygame.init()
 
@@ -24,6 +23,8 @@ font = pygame.font.SysFont("Arial", 10)
 FPS = 60
 clock = pygame.time.Clock()
 metronome = 0
+seconds = 0
+minutes = 0
 
 stringbean = Player(screen_rect.center, FPS)
 
@@ -31,7 +32,32 @@ player_group = pygame.sprite.Group()
 player_group.add(stringbean)
 
 enemy_group = pygame.sprite.Group()
-enemy_group.add(Boss((0, 0)))
+
+def generate_random_outside(width, height):
+    p = random.randint(0, (2 * width) + (2 * height))
+    if p < (width + height):
+        if p < width:
+            x = p
+            y = 0
+        else:
+            x = width
+            y = p - width
+    else:
+        p = p - (width + height)
+        if p < width:
+            x = width - p
+            y = height
+        else:
+            x = 0
+            y = height - (p - width)
+    return (x, y)
+
+def spawn_wave(enemy_class, level, ammount):
+    for enemy in range(ammount):
+        pos = generate_random_outside(screen_rect.width, screen_rect.height)
+        enemy_group.add(enemy_class(pos, level))
+
+spawn_wave(Hound, 1, 4)
 
 running = True
 while running:
@@ -61,6 +87,20 @@ while running:
     enemy_group.update(stringbean.rect.center)
     enemy_group.draw(screen)
 
+    enemy_level = minutes/50
+
+    #defining waves
+    if seconds == 15 and minutes < 5:
+        spawn_wave(Hound, enemy_level, 5)
+    if seconds == 30 and minutes > 2 and minutes < 7:
+        spawn_wave(Drone, enemy_level, 5)
+    if seconds == 15 and minutes > 3 and minutes < 7:
+        spawn_wave(Hound, enemy_level, 10)
+    if seconds == 30 and minutes > 4 and minutes < 7:
+        spawn_wave(Drone, enemy_level, 15)
+    if minutes == 7 and seconds == 30:
+        spawn_wave(Boss, enemy_level, 1)
+
 
     #testing stuffs
     text = font.render(f"velX: {stringbean.velocity.x}", True, GREEN)
@@ -71,7 +111,7 @@ while running:
     screen.blit(text, (250, 0))
     text = font.render(f"accY: {stringbean.acceleration.y}", True, RED)
     screen.blit(text, (250, 20))
-    text = font.render(f"Frame: {metronome}", True, BLUE)
+    text = font.render(f"Time: {minutes}:{seconds}:{metronome}", True, BLUE)
     screen.blit(text, (400, 0))
     text = font.render(f"HEALTH: {stringbean.hp}", True, RED)
     screen.blit(text, (250, 40))
@@ -96,4 +136,8 @@ while running:
     metronome += 1
     if metronome > FPS:
         metronome = 0
+        seconds += 1
+        if seconds > 60:
+            seconds = 0
+            minutes += 1
 
