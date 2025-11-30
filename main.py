@@ -87,18 +87,18 @@ while running:
     enemy_group.update(stringbean.rect.center)
     enemy_group.draw(screen)
 
-    enemy_level = minutes/50
+    enemy_level = int(pygame.math.lerp(1, 50, (minutes+(seconds/60))/7))
 
     #defining waves
-    if seconds == 15 and minutes < 5:
+    if (not seconds%5) and minutes < 5 and metronome == 0:
         spawn_wave(Hound, enemy_level, 5)
-    if seconds == 30 and minutes > 2 and minutes < 7:
+    if seconds == 30 and minutes > 2 and minutes < 7 and metronome == 0:
         spawn_wave(Drone, enemy_level, 5)
-    if seconds == 15 and minutes > 3 and minutes < 7:
+    if (not seconds%15) and minutes > 1 and minutes < 7 and metronome == 0:
         spawn_wave(Hound, enemy_level, 10)
-    if seconds == 30 and minutes > 4 and minutes < 7:
+    if (not seconds%30) and minutes > 4 and minutes < 7 and metronome == 0:
         spawn_wave(Drone, enemy_level, 15)
-    if minutes == 7 and seconds == 30:
+    if minutes == 7 and seconds == 30 and metronome == 0:
         spawn_wave(Boss, enemy_level, 1)
 
 
@@ -116,19 +116,11 @@ while running:
     text = font.render(f"HEALTH: {stringbean.hp}", True, RED)
     screen.blit(text, (250, 40))
 
-    for enemy in enemy_group:
-        text = font.render(f"velX: {enemy.velocity.x}", True, GREEN)
-        screen.blit(text, (0, 400))
-        text = font.render(f"velY: {enemy.velocity.y}", True, GREEN)
-        screen.blit(text, (0, 420))
-        text = font.render(f"velM: {enemy.velocity.magnitude()}", True, GREEN)
-        screen.blit(text, (0, 440))
-        text = font.render(f"accX: {enemy.acceleration.x}", True, RED)
-        screen.blit(text, (250, 400))
-        text = font.render(f"accY: {enemy.acceleration.y}", True, RED)
-        screen.blit(text, (250, 420))
-        text = font.render(f"HEALTH: {enemy.hp}", True, RED)
-        screen.blit(text, (250, 440))
+    text = font.render(f"enemy count: {enemy_group.__len__()}", True, GREEN)
+    screen.blit(text, (0, 400))
+    text = font.render(f"enemy level: {enemy_level}", True, GREEN)
+    screen.blit(text, (0, 420))
+
     #/testing stuffs
 
     pygame.display.update()

@@ -2,7 +2,7 @@
 
 #enemy classes
 
-import pygame, random
+import pygame, random, math
 from classes.animation import Animation
 from classes.bullet import Bullet, Missile
 
@@ -17,11 +17,11 @@ RIGHT: bool = 1
 load = pygame.image.load
 vec2 = pygame.math.Vector2
 get_ticks = pygame.time.get_ticks
-
+lerp = pygame.math.lerp
 
 #custom lerp function that can return numbers outside the [0, 1] range
-def lerp(stat_min, stat_max, level_fraction: float) -> float: #will be used to calculate enemy stats depending on current level
-    return stat_min + (stat_max - stat_min) * level_fraction
+#def lerp(stat_min, stat_max, level_fraction: float) -> float: #will be used to calculate enemy stats depending on current level
+    #return stat_min + (stat_max - stat_min) * level_fraction
 
 #enemy parent class
 class Enemy(pygame.sprite.Sprite): 
@@ -32,7 +32,7 @@ class Enemy(pygame.sprite.Sprite):
         self.hp = int(lerp(1, self.MAX_HP, self.lv/MAX_LEVEL))
 
         self.walk = [Animation, Animation]
-        self.walk[RIGHT] = Animation(walk_animation, walk_milliseconds).set_colorkey_all("#FFFFFF")
+        self.walk[RIGHT] = Animation(walk_animation, walk_milliseconds).set_colorkey_all("#ffffff")
         self.walk[LEFT] = self.walk[RIGHT].flip_frames(True)
 
         self.image: pygame.surface.Surface = self.walk[RIGHT].update()
@@ -105,10 +105,8 @@ BIG_MISSILE_COUNT = 10
 
 class Hound(Enemy):
     def __init__(self, starting_pos, level = 1):
-        walk_anim = [load(f"assets/HOUND/hound_walk-{i}.png").convert() for i in range(DOG_WALK_FRAMES)]
+        walk_anim = [load(f"assets/HOUND/hound-run-frame-{i}.png").convert() for i in range(DOG_WALK_FRAMES)]
         super().__init__(starting_pos, walk_anim, DOG_ANIM_MILLISECONDS, DOG_HP, DOG_SPEED, level)
-        self.walk[RIGHT].set_colorkey_all("#000000")
-        self.walk[LEFT].set_colorkey_all("#000000")
         
 class Drone(Enemy):
     def __init__(self, starting_pos, level = 20):
