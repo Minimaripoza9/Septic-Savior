@@ -72,10 +72,12 @@ class Enemy(pygame.sprite.Sprite):
         self.lv += level_modifier
         self.hp = int(lerp(1, self.MAX_HP, self.lv/MAX_LEVEL))
 
-    def hit(self, damage):
+    def is_killing_blow(self, damage):
         self.hp -= damage
         if self.hp < 1:
             self.kill()
+            return True
+        return False
 
 #child classes
 
@@ -110,7 +112,7 @@ class Hound(Enemy):
         
 class Drone(Enemy):
     def __init__(self, starting_pos, level = 20):
-        walk_anim = [load(f"assets/DRONE/drone_walk-{i}.png").convert() for i in range(AIR_WALK_FRAMES)]
+        walk_anim = [load(f"assets/DRONE/drone_run_{i}.png").convert() for i in range(AIR_WALK_FRAMES)]
         self.bullet_group = pygame.sprite.Group()
         self.fire_rate = AIR_FIRE_RATE
         self.shot_ticks = pygame.time.get_ticks()
@@ -124,7 +126,7 @@ class Drone(Enemy):
         now = pygame.time.get_ticks()
         if now - self.shot_ticks > self.fire_rate:
             self.shot_ticks = now
-            self.bullet_group.add(Bullet(AIR_SPEED, 200, self.rect.center, target, True))
+            self.bullet_group.add(Bullet(AIR_SPEED, 200, self.rect.center, target, False))
 
 #will have far more animations than the basic enemies
 class Boss(Enemy):
@@ -154,5 +156,3 @@ class Boss(Enemy):
             self.missile_group.add(Missile(self.rect.center, player_pos))
     
         return True
-            
-        

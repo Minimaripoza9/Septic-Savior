@@ -1,3 +1,5 @@
+#custom animation class for pygame
+
 import pygame
 
 load = pygame.image.load
@@ -18,7 +20,6 @@ class Animation():
 
         self.ticks = get_ticks()
 
-        #self.frame_speeds = [default_frame_speed for i in range(self.frame_count)] #parallel list with frame speed for each frame
         self.frame_speed = default_frame_speed
 
     def set_colorkey_all(self, colorkey, flags: int = 0):
@@ -47,10 +48,13 @@ class Animation():
         updates and returns the current animation frame
         """
         now = get_ticks()
-        if now - self.ticks > self.frame_speed:#s[self.current_index]:
+        if now - self.ticks > self.frame_speed:
             self.ticks = now
             self.current_index = (self.current_index + 1) % self.frame_count
         return self.all_frames[self.current_index]
+    
+    def get_current_index(self):
+        return self.current_index
     
     def get_frame_speed(self):
         return self.frame_speed

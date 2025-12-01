@@ -7,6 +7,7 @@
 import pygame, random, sys
 from classes.player import Player
 from classes.enemy import Boss, Hound, Drone
+from classes.button import Button
 
 pygame.init()
 
@@ -18,20 +19,12 @@ bg_img = pygame.image.load("assets/background.png")
 screen_rect = pygame.rect.Rect(0, 0, 640, 480)
 screen = pygame.display.set_mode(screen_rect.bottomright, 0, 32)
 
-font = pygame.font.SysFont("Arial", 10)
+title_font = pygame.font.SysFont("Phosphate", 40)
+font = pygame.font.SysFont("Arial", 20)
 
 FPS = 60
 clock = pygame.time.Clock()
-metronome = 0
-seconds = 0
-minutes = 0
 
-stringbean = Player(screen_rect.center, FPS)
-
-player_group = pygame.sprite.Group()
-player_group.add(stringbean)
-
-enemy_group = pygame.sprite.Group()
 
 def generate_random_outside(width, height):
     p = random.randint(0, (2 * width) + (2 * height))
@@ -53,83 +46,178 @@ def generate_random_outside(width, height):
     return (x, y)
 
 def spawn_wave(enemy_class, level, ammount):
-    for enemy in range(ammount):
+    enemy_group = pygame.sprite.Group()
+    for e in range(ammount):
         pos = generate_random_outside(screen_rect.width, screen_rect.height)
         enemy_group.add(enemy_class(pos, level))
+    return enemy_group
 
-spawn_wave(Hound, 1, 4)
+def exit_game():
+    pygame.quit()
+    sys.exit()
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-            
-    screen.blit(bg_img, screen_rect)
+def game_over():
 
-    player_group.update()
-    player_group.draw(screen)
+    over = True
 
-    player_hit = pygame.sprite.spritecollide(stringbean, enemy_group, False)
-    if player_hit.__len__():
-        stringbean.hit()
+    lose_buttons = []
 
-    enemy_hit = pygame.sprite.groupcollide(enemy_group, stringbean.bullet_group, False, True)
+    lose_buttons.append(Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+100, 400, 50), 
+                               __main__, title_font, "S T A R T   O V E R", 
+                               ("#277f04","#769e46","#0a4e12")))
+    lose_buttons.append(Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+175, 400, 50), 
+                               exit_game, title_font, "Q U I T   G A M E",
+                               ("#277f04","#769e46","#0a4e12")))
 
-    for enemy in enemy_hit:
-        enemy.hit(stringbean.damage)
+    while over:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit_game()
+
+        screen.fill(("#58078a"))
+        
+        for button in lose_buttons:
+            screen.blit(button.process(), button.buttonRect)
+        
+        pygame.display.flip()
+        clock.tick(FPS)
+
+def game_loop():
+    metronome = 0
+    seconds = 0
+    minutes = 0
+
+    stringbean = Player(screen_rect.center, FPS)
+
+    player_group = pygame.sprite.Group()
+    player_group.add(stringbean)
+
+    enemy_group = pygame.sprite.Group()
+    enemy_group.add(Boss((0, 0)))
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit_game()
+                
+        screen.blit(bg_img, screen_rect)
+
+        player_group.update(screen_rect)
+        stringbean.bullet_group.update()
+
+        enemy_group.update(stringbean.rect.center)
+
+        player_hit = pygame.sprite.spritecollide(stringbean, enemy_group, False)
+        enemy_hit = pygame.sprite.groupcollide(enemy_group, stringbean.bullet_group, False, True)
+
+        if player_hit.__len__():
+            stringbean.hit()
+
+        for enemy in enemy_hit:
+            stringbean.xp += enemy.is_killing_blow(stringbean.damage)
+
+        enemy_level = int(pygame.math.lerp(1, 50, (minutes+(seconds/60))/7))
+
+        #defining waves
+        if (not seconds%5) and minutes < 5 and metronome == 0:
+            enemy_group.add(spawn_wave(Hound, enemy_level, 5))
+        if seconds == 30 and minutes > 2 and minutes < 7 and metronome == 0:
+            enemy_group.add(spawn_wave(Drone, enemy_level, 5))
+        if (not seconds%15) and minutes > 1 and minutes < 7 and metronome == 0:
+            enemy_group.add(spawn_wave(Hound, enemy_level, 10))
+        if (not seconds%30) and minutes > 4 and minutes < 7 and metronome == 0:
+            enemy_group.add(spawn_wave(Drone, enemy_level, 15))
+        if minutes == 7 and seconds == 00 and metronome == 0:
+            enemy_group.add(spawn_wave(Boss, enemy_level, 1))
 
 
-    stringbean.bullet_group.update()
-    stringbean.bullet_group.draw(screen)
+        #testing stuffs
+        text = font.render(f"velX: {stringbean.velocity.x}", True, GREEN)
+        screen.blit(text, (0, 0))
+        text = font.render(f"velY: {stringbean.velocity.y}", True, GREEN)
+        screen.blit(text, (0, 20))
+        text = font.render(f"accX: {stringbean.acceleration.x}", True, RED)
+        screen.blit(text, (250, 0))
+        text = font.render(f"accY: {stringbean.acceleration.y}", True, RED)
+        screen.blit(text, (250, 20))
+        text = font.render(f"Time: {minutes}:{seconds}:{metronome}", True, BLUE)
+        screen.blit(text, (400, 0))
+        text = font.render(f"HEALTH: {stringbean.hp}", True, RED)
+        screen.blit(text, (250, 40))
 
-    enemy_group.update(stringbean.rect.center)
-    enemy_group.draw(screen)
+        text = font.render(f"enemy count: {enemy_group.__len__()}", True, GREEN)
+        screen.blit(text, (0, 400))
+        text = font.render(f"enemy level: {enemy_level}", True, GREEN)
+        screen.blit(text, (0, 420))
+        #/testing stuffs
 
-    enemy_level = int(pygame.math.lerp(1, 50, (minutes+(seconds/60))/7))
+        enemy_group.draw(screen)
+        stringbean.bullet_group.draw(screen)
+        player_group.draw(screen)
 
-    #defining waves
-    if (not seconds%5) and minutes < 5 and metronome == 0:
-        spawn_wave(Hound, enemy_level, 5)
-    if seconds == 30 and minutes > 2 and minutes < 7 and metronome == 0:
-        spawn_wave(Drone, enemy_level, 5)
-    if (not seconds%15) and minutes > 1 and minutes < 7 and metronome == 0:
-        spawn_wave(Hound, enemy_level, 10)
-    if (not seconds%30) and minutes > 4 and minutes < 7 and metronome == 0:
-        spawn_wave(Drone, enemy_level, 15)
-    if minutes == 7 and seconds == 30 and metronome == 0:
-        spawn_wave(Boss, enemy_level, 1)
+        if not player_group.__len__():
+            return game_over()
+        if (not enemy_group.__len__()) and minutes > 7:
+            return you_win()
 
+        pygame.display.update()
+        clock.tick(FPS)
+        metronome += 1
+        if metronome > FPS:
+            metronome = 0
+            seconds += 1
+            if seconds > 60:
+                seconds = 0
+                minutes += 1
 
-    #testing stuffs
-    text = font.render(f"velX: {stringbean.velocity.x}", True, GREEN)
-    screen.blit(text, (0, 0))
-    text = font.render(f"velY: {stringbean.velocity.y}", True, GREEN)
-    screen.blit(text, (0, 20))
-    text = font.render(f"accX: {stringbean.acceleration.x}", True, RED)
-    screen.blit(text, (250, 0))
-    text = font.render(f"accY: {stringbean.acceleration.y}", True, RED)
-    screen.blit(text, (250, 20))
-    text = font.render(f"Time: {minutes}:{seconds}:{metronome}", True, BLUE)
-    screen.blit(text, (400, 0))
-    text = font.render(f"HEALTH: {stringbean.hp}", True, RED)
-    screen.blit(text, (250, 40))
+def you_win():
+    over = True
 
-    text = font.render(f"enemy count: {enemy_group.__len__()}", True, GREEN)
-    screen.blit(text, (0, 400))
-    text = font.render(f"enemy level: {enemy_level}", True, GREEN)
-    screen.blit(text, (0, 420))
+    lose_buttons = []
 
-    #/testing stuffs
+    lose_buttons.append(Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+100, 400, 50), 
+                               __main__, title_font, "S T A R T   O V E R", 
+                               ("#277f04","#769e46","#0a4e12")))
+    lose_buttons.append(Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+175, 400, 50), 
+                               exit_game, title_font, "Q U I T   G A M E",
+                               ("#277f04","#769e46","#0a4e12")))
 
-    pygame.display.update()
-    clock.tick(FPS)
-    metronome += 1
-    if metronome > FPS:
-        metronome = 0
-        seconds += 1
-        if seconds > 60:
-            seconds = 0
-            minutes += 1
+    while over:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit_game()
 
+        screen.fill(("#b3f81e"))
+        text = title_font.render
+        
+        for button in lose_buttons:
+            screen.blit(button.process(), button.buttonRect)
+        
+        pygame.display.flip()
+        clock.tick(FPS)
+
+def normal_mode():
+    game_loop()
+
+def __main__():
+    start_button = Button(pygame.rect.Rect(screen_rect.centerx - 100, screen_rect.centery+50, 200, 50),
+                        game_loop, title_font, "S  T  A  R  T",
+                        ("#277f04","#769e46","#0a4e12"))
+    endless_button = (Button(pygame.rect.Rect(screen_rect.centerx - 100, screen_rect.centery+175, 200, 50), 
+                               game_loop, title_font, "E N D L E S S",
+                               ("#277f04","#769e46","#0a4e12")))
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        screen.fill((0, 0, 0))
+        screen.blit(start_button.process(), start_button.buttonRect)
+        screen.blit(endless_button.process(), endless_button.buttonRect)
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+__main__()
