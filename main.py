@@ -20,10 +20,12 @@ screen_rect = pygame.rect.Rect(0, 0, 640, 480)
 screen = pygame.display.set_mode(screen_rect.bottomright, 0, 32)
 
 title_font = pygame.font.SysFont("Phosphate", 40)
-font = pygame.font.SysFont("Arial", 20)
+font = pygame.font.SysFont("Phospate", 15)
 
 FPS = 60
 clock = pygame.time.Clock()
+
+mixer = pygame.mixer.music.load()
 
 
 def generate_random_outside(width, height):
@@ -60,21 +62,18 @@ def game_over():
 
     over = True
 
-    lose_buttons = []
+    lose_buttons = [Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+100, 400, 50), 
+                    __main__, title_font, "M A I N   M E N U", ("#1c4d09","#508016","#041a07")),
 
-    lose_buttons.append(Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+100, 400, 50), 
-                               __main__, title_font, "S T A R T   O V E R", 
-                               ("#277f04","#769e46","#0a4e12")))
-    lose_buttons.append(Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+175, 400, 50), 
-                               exit_game, title_font, "Q U I T   G A M E",
-                               ("#277f04","#769e46","#0a4e12")))
+                    Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+175, 400, 50), 
+                    exit_game, title_font, "Q U I T   G A M E", ("#1c4d09","#508016","#041a07"))]
 
     while over:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit_game()
 
-        screen.fill(("#58078a"))
+        screen.fill(("#27063b"))
         
         for button in lose_buttons:
             screen.blit(button.process(), button.buttonRect)
@@ -82,7 +81,7 @@ def game_over():
         pygame.display.flip()
         clock.tick(FPS)
 
-def game_loop():
+def game_loop(time_limit):
     metronome = 0
     seconds = 0
     minutes = 0
@@ -93,7 +92,6 @@ def game_loop():
     player_group.add(stringbean)
 
     enemy_group = pygame.sprite.Group()
-    enemy_group.add(Boss((0, 0)))
 
     running = True
     while running:
@@ -115,25 +113,30 @@ def game_loop():
             stringbean.hit()
 
         for enemy in enemy_hit:
-            stringbean.xp += enemy.is_killing_blow(stringbean.damage)
+            stringbean.xp += 10 * enemy.is_killing_blow(stringbean.damage)
 
         enemy_level = int(pygame.math.lerp(1, 50, (minutes+(seconds/60))/7))
 
         #defining waves
-        if (not seconds%5) and minutes < 5 and metronome == 0:
-            enemy_group.add(spawn_wave(Hound, enemy_level, 5))
-        if seconds == 30 and minutes > 2 and minutes < 7 and metronome == 0:
-            enemy_group.add(spawn_wave(Drone, enemy_level, 5))
-        if (not seconds%15) and minutes > 1 and minutes < 7 and metronome == 0:
-            enemy_group.add(spawn_wave(Hound, enemy_level, 10))
-        if (not seconds%30) and minutes > 4 and minutes < 7 and metronome == 0:
-            enemy_group.add(spawn_wave(Drone, enemy_level, 15))
-        if minutes == 7 and seconds == 00 and metronome == 0:
-            enemy_group.add(spawn_wave(Boss, enemy_level, 1))
+        if minutes < time_limit:
+            if (not seconds % 5) and metronome == 0:
+                enemy_group.add(spawn_wave(Hound, enemy_level, 5))
+
+            if seconds == 30 and minutes > 2 and metronome == 0:
+                enemy_group.add(spawn_wave(Drone, enemy_level, 5))
+
+            if (not seconds%15) and minutes > 1 and metronome == 0:
+                enemy_group.add(spawn_wave(Hound, enemy_level, 3 * minutes))
+
+            if (not seconds%30) and minutes > 4 and metronome == 0:
+                enemy_group.add(spawn_wave(Drone, enemy_level, 3 * minutes))
+                
+        if (not minutes % 5) and seconds == 00 and metronome == 0:
+            enemy_group.add(spawn_wave(Boss, enemy_level, minutes//5))
 
 
         #testing stuffs
-        text = font.render(f"velX: {stringbean.velocity.x}", True, GREEN)
+        text = font.render(f"score: {stringbean.xp}", True, GREEN)
         screen.blit(text, (0, 0))
         text = font.render(f"velY: {stringbean.velocity.y}", True, GREEN)
         screen.blit(text, (0, 20))
@@ -158,7 +161,7 @@ def game_loop():
 
         if not player_group.__len__():
             return game_over()
-        if (not enemy_group.__len__()) and minutes > 7:
+        if (not enemy_group.__len__()) and minutes > time_limit:
             return you_win()
 
         pygame.display.update()
@@ -174,14 +177,12 @@ def game_loop():
 def you_win():
     over = True
 
-    lose_buttons = []
+    win_buttons = [Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+100, 400, 50), 
+                    __main__, title_font, "M A I N   M E N U", ("#277f04","#769e46","#0a4e12")),
 
-    lose_buttons.append(Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+100, 400, 50), 
-                               __main__, title_font, "S T A R T   O V E R", 
-                               ("#277f04","#769e46","#0a4e12")))
-    lose_buttons.append(Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+175, 400, 50), 
-                               exit_game, title_font, "Q U I T   G A M E",
-                               ("#277f04","#769e46","#0a4e12")))
+                    Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+175, 400, 50), 
+                    exit_game, title_font, "Q U I T  G A M E", ("#277f04","#769e46","#0a4e12"))]
+    text = title_font.render
 
     while over:
         for event in pygame.event.get():
@@ -189,23 +190,26 @@ def you_win():
                 exit_game()
 
         screen.fill(("#b3f81e"))
-        text = title_font.render
         
-        for button in lose_buttons:
+        screen.blit(text, screen_rect.center)
+        for button in win_buttons:
             screen.blit(button.process(), button.buttonRect)
         
         pygame.display.flip()
         clock.tick(FPS)
 
 def normal_mode():
-    game_loop()
+    game_loop(5)
+
+def endless_mode():
+    game_loop(sys.maxsize)
 
 def __main__():
-    start_button = Button(pygame.rect.Rect(screen_rect.centerx - 100, screen_rect.centery+50, 200, 50),
-                        game_loop, title_font, "S  T  A  R  T",
+    start_button = Button(pygame.rect.Rect(25, 25, 200, 50),
+                        normal_mode, title_font, "S  T  A  R  T",
                         ("#277f04","#769e46","#0a4e12"))
-    endless_button = (Button(pygame.rect.Rect(screen_rect.centerx - 100, screen_rect.centery+175, 200, 50), 
-                               game_loop, title_font, "E N D L E S S",
+    endless_button = (Button(pygame.rect.Rect(25, 100, 200, 50), 
+                               endless_mode, title_font, "E N D L E S S",
                                ("#277f04","#769e46","#0a4e12")))
 
     while True:

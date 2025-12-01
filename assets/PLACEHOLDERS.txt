@@ -1,4 +1,0 @@
-list of assets that need to be updated:
-
-background.png
-player.png
