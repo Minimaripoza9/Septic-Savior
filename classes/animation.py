@@ -43,7 +43,7 @@ class Animation():
         self.current_index = 0
         self.ticks = get_ticks()
     
-    def update(self) -> pygame.image:
+    def update(self) -> pygame.surface.Surface:
         """
         updates and returns the current animation frame
         """

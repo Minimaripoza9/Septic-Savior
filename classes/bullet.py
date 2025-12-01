@@ -22,11 +22,18 @@ class Bullet(pygame.sprite.Sprite):
 
 
 class Missile(pygame.sprite.Sprite):
-    def __init__(self, starting_pos: tuple, target: tuple, is_friendly: bool):
+    def __init__(self, starting_pos: tuple, target: tuple):
         super().__init__()
         self.target = target
-        self.image = load(f"assets/bullet{int(is_friendly)}.png").convert()
-        self.velocity = vec2(target[0]-starting_pos[0],target[1]-starting_pos[1]).normalize_ip()
+        sprites = [load(f"assets/MISSILE/missile-{i}.png").convert() for i in range(4)]
+        self.anim = Animation(sprites)
+        self.anim.set_colorkey_all("#000000")
+        self.image: pygame.surface.Surface = self.anim.update()
+        self.rect = self.image.get_rect()
+        self.rect.center = starting_pos
+        self.velocity :vec2= vec2(target[0]-starting_pos[0],target[1]-starting_pos[1]).normalize() * 5
 
     def update(self):
-        self.rec
+        self.rect.center += self.velocity
+        _, angle = self.velocity.as_polar()
+        self.image = pygame.transform.rotate(self.anim.update(), -angle+45)
