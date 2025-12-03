@@ -19,8 +19,8 @@ bg_img = pygame.image.load("assets/background.png")
 screen_rect = pygame.rect.Rect(0, 0, 640, 480)
 screen = pygame.display.set_mode(screen_rect.bottomright, 0, 32)
 
-button_font = pygame.font.SysFont("Phosphate", 40)
-g_font = pygame.font.SysFont("Phosphate", 30)
+button_font = pygame.font.Font("assets/fonts/BoldPixels.ttf", 40)
+g_font = pygame.font.Font("assets/fonts/BoldPixels.ttf", 30)
 
 FPS = 60
 clock = pygame.time.Clock()
@@ -70,10 +70,10 @@ def game_over():
     over = True
 
     lose_buttons = [Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+100, 400, 50), 
-                    __main__, button_font, "M A I N   M E N U", ("#8b0000","#FF0000","#2c0202")),
+                    __main__, button_font, "MAIN MENU", ("#8b0000","#FF0000","#2c0202")),
 
                     Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+175, 400, 50), 
-                    exit_game, button_font, "Q U I T   G A M E", ("#8b0000","#FF0000","#2c0202"))]
+                    exit_game, button_font, "QUIT GAME", ("#8b0000","#FF0000","#2c0202"))]
 
     while over:
         for event in pygame.event.get():
@@ -101,10 +101,10 @@ def you_win():
     img = pygame.image.load("assets/you_win.png").convert()
 
     win_buttons = [Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+100, 400, 50), 
-                    __main__, button_font, "M A I N   M E N U", ("#7f6604","#9b9e46","#4e0a0a")),
+                    __main__, button_font, "MAIN MENU", ("#7f6604","#9b9e46","#4e0a0a")),
 
                     Button(pygame.rect.Rect(screen_rect.centerx - 200, screen_rect.centery+175, 400, 50), 
-                    exit_game, button_font, "Q U I T  G A M E", ("#7f6604","#9b9e46","#4e0a0a"))]
+                    exit_game, button_font, "QUIT GAME", ("#7f6604","#9b9e46","#4e0a0a"))]
 
     while over:
         for event in pygame.event.get():
@@ -273,10 +273,10 @@ def __main__():
     img = pygame.image.load("assets/title_screen.png").convert()
 
     start_button = Button(pygame.rect.Rect(25, screen_rect.bottom-150, 200, 50),
-                        normal_mode, button_font, "S  T  A  R  T",
+                        normal_mode, button_font, "SURVIVE",
                         ("#047b7f","#469e92","#0a4e12"))
     endless_button = (Button(pygame.rect.Rect(25, screen_rect.bottom - 75, 200, 50), 
-                               endless_mode, button_font, "E N D L E S S",
+                               endless_mode, button_font, "ENDLESS",
                                ("#047b7f","#469e92","#0a4e12")))
 
     while True:
