@@ -36,13 +36,3 @@ class Missile(pygame.sprite.Sprite):
         self.rect.center += self.velocity
         _, angle = self.velocity.as_polar()
         self.image = pygame.transform.rotate(self.anim.update(), -angle+45)
-
-class Collectible(pygame.sprite.Sprite):
-    def __init__(self, starting_pos, type):
-        super().__init__()
-        self.image = load(f"assets/collectibles/{type}.png").convert()
-        self.rect = self.image.get_rect()
-        self.rect.center = starting_pos
-
-    def update(self, *args, **kwargs):
-        return super().update(*args, **kwargs)

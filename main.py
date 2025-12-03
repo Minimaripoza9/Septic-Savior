@@ -8,7 +8,6 @@ import pygame, random, sys
 from classes.player import Player
 from classes.enemy import Boss, Hound, Drone
 from classes.button import Button
-from classes.bullet import Collectible
 
 pygame.init()
 
