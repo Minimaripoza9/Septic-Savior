@@ -96,6 +96,7 @@ BIG_SPEED = 5
 BIG_WALK_FRAMES = 8
 BIG_PUNCH_FRAMES = 8
 BIG_BARRAGE_FRAMES = 8
+BIG_DEATH_FRAMES = 4
 BIG_WALK_MILLISECONDS = 200
 BIG_PUNCH_MILLISECONDS = 200
 BIG_BARRAGE_MILLISECONDS = 5000
@@ -137,15 +138,22 @@ class Boss(Enemy):
         self.barrage_anim[RIGHT] = Animation(barg, 200).set_colorkey_all("#ffffff")
         self.barrage_anim[LEFT] = self.barrage_anim[RIGHT].flip_frames(True)
 
-        panch = [load(f"assets/BOSS/boss_punch-{i}.png").convert() for i in range(BIG_BARRAGE_FRAMES)]
+        panch = [load(f"assets/BOSS/boss_punch-{i}.png").convert() for i in range(BIG_PUNCH_FRAMES)]
         self.punch_anim = [Animation, Animation]
 
         self.punch_anim[RIGHT] = Animation(panch, 300).set_colorkey_all("#ffffff")
         self.punch_anim[LEFT] = self.punch_anim[RIGHT].flip_frames(True)
 
+        die = [load(f"assets/BOSS/boss_death-{i}.png").convert() for i in range(BIG_DEATH_FRAMES)]
+        self.death = [Animation, Animation]
+
+        self.death[RIGHT] = Animation(die, 700).set_colorkey_all("#000000")
+        self.death[LEFT] = self.death[RIGHT].flip_frames(True)
+        
         self.missile_cap = 0
         self.attack_ticks = pygame.time.get_ticks()
 
+        self.dead = False
         self.punching = False
         
 
@@ -156,10 +164,14 @@ class Boss(Enemy):
         if not self.stopped and (self.punching or not random.randint(0, 500)): 
             self.punch()
 
+        if self.dead:
+            self.kill()
+
     def punch(self):
         now = pygame.time.get_ticks()
         self.punching = True
-        self.image = self.punch_anim[self.turn].update()
+        if not self.dead:
+            self.image = self.punch_anim[self.turn].update()
         if now - self.attack_ticks > 10000:
             self.attack_ticks = now
             self.speed_mult = BIG_SPEED
@@ -171,7 +183,8 @@ class Boss(Enemy):
     def barrage(self, player_pos: tuple):
         now = pygame.time.get_ticks()
         self.stopped = True
-        self.image = self.barrage_anim[self.turn].update()
+        if not self.dead:
+            self.image = self.barrage_anim[self.turn].update()
         if self.missile_cap >= BIG_MISSILE_COUNT:
             self.missile_cap = 0
             self.stopped = False
@@ -182,3 +195,12 @@ class Boss(Enemy):
             self.missile_cap += 1
             self.bullet_group.add(Missile(self.rect.center, player_pos))
         return True
+    
+    def kill(self):
+        self.stopped = True
+        self.punching = False
+        self.dead = True
+        self.speed_mult = 0
+        self.image = self.death[self.turn].update()
+        if not self.death[self.turn].get_current_index():
+            return super().kill()

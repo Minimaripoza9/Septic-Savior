@@ -29,3 +29,7 @@ General Direction
 Sprite Tweaking
 
     Rose Hernandez
+
+Educational Investigation
+
+    Rose Hernandez

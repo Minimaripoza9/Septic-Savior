@@ -89,8 +89,12 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = clamp(self.rect.x, 0, screen_rect.w - self.rect.width)
         self.rect.y = clamp(self.rect.y, 0, screen_rect.h - self.rect.height)
 
-        self.level = lerp(1, 100, self.xp/100000)
-        self.damage = lerp(1, 400, self.level/100)
+        self.level = int(lerp(1, 100, self.xp/10000))
+        self.damage = int(lerp(1, 400, self.level/100))
+        self.rof = lerp(FIRE_RATE, 1, self.level/100)
+        self.MAXHP = lerp(3, 10, self.level/100)
+        if not self.xp%5000:
+            self.hp = int(self.MAXHP)
 
         #reset acceleration vector
         self.acceleration = vec2(0, 0)
@@ -113,11 +117,12 @@ class Player(pygame.sprite.Sprite):
             self.acceleration.y = acceleration
 
         #sprinting
-        if (keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]) and (self.stamina > 0):
-            speed = self.speed_mult * 1.5
+        speed = self.speed_mult
+        if (keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]):
+            if (self.stamina > 10):
+                speed = self.speed_mult * 1.5
             self.stamina -= 1
         else:
-            speed = self.speed_mult
             self.stamina += 1
 
         #shooting

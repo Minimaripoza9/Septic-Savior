@@ -8,7 +8,7 @@ import pygame, random, sys
 from classes.player import Player
 from classes.enemy import Boss, Hound, Drone
 from classes.button import Button
-from classes.collectible import Collectible
+from classes.bullet import Collectible
 
 pygame.init()
 
@@ -130,15 +130,14 @@ def game_loop(time_limit):
     seconds = 0
     minutes = 0
 
+    wave_num = 0
+
     stringbean = Player(screen_rect.center, FPS)
 
     player_group = pygame.sprite.Group()
     player_group.add(stringbean)
 
     enemy_group = pygame.sprite.Group()
-
-    buff_list = ["health", "xp", "hp_buff", "fr_buff", "dm_buff"]
-    collectible_group = pygame.sprite.Group()
 
     running = True
     while running:
@@ -171,8 +170,7 @@ def game_loop(time_limit):
 
         for enemy in enemy_hit:
             stringbean.xp += enemy.lv * enemy.is_killing_blow(stringbean.damage)
-            if not random.randint(0, 100):
-                collectible_group.add(buff_list[random.randint])
+
 
         enemy_level = int(pygame.math.lerp(1, 50, (minutes+(seconds/60))/7))
 
@@ -181,10 +179,12 @@ def game_loop(time_limit):
             if (not seconds % 5) and metronome == 0:
                 enemy_group.add(spawn_wave(Hound, enemy_level, 5))
                 bark.play()
+                wave_num +=1
 
             if seconds == 30 and minutes > 0 and metronome == 0:
-                enemy_group.add(spawn_wave(Drone, enemy_level, 5))
+                enemy_group.add(spawn_wave(Drone, enemy_level, 10))
                 chop.play()
+                wave_num += 1
 
             if (not seconds%15) and minutes > 1 and metronome == 0:
                 enemy_group.add(spawn_wave(Hound, enemy_level, 3 * minutes))
@@ -205,6 +205,12 @@ def game_loop(time_limit):
             pygame.mixer.music.play(256)
 
 
+        #UI display
+        
+        pygame.draw.rect(screen, "#1bd506", (25, 25, 100 * (stringbean.stamina/100), 10))
+        for hp in range(stringbean.hp, 0, -1):
+            pygame.draw.rect(screen, "#ff0000", ((30*hp-5), 50, 25, 25))
+
         #testing stuffs
         text = font.render(f"xp: {stringbean.xp}", True, GREEN)
         screen.blit(text, (0, 0))
@@ -212,7 +218,9 @@ def game_loop(time_limit):
         screen.blit(text, (0, 20))
         text = font.render(f"damage: {stringbean.damage}", True, RED)
         screen.blit(text, (250, 0))
-        text = font.render(f"Time: {minutes}:{seconds}:{metronome}", True, BLUE)
+        text = font.render(f"fire_rate: {stringbean.rof}", True, RED)
+        screen.blit(text, (250, 40))
+        text = button_font.render(f"Time: {minutes}:{seconds}:{metronome}", True, BLUE)
         screen.blit(text, (250, 20))
         text = font.render(f"HEALTH: {stringbean.hp}/{stringbean.MAXHP}", True, RED)
         screen.blit(text, (400, 0))
@@ -237,10 +245,10 @@ def game_loop(time_limit):
         pygame.display.update()
         clock.tick(FPS)
         metronome += 1
-        if metronome > FPS:
+        if metronome >= FPS:
             metronome = 0
             seconds += 1
-            if seconds > 60:
+            if seconds >= 60:
                 seconds = 0
                 minutes += 1
 
