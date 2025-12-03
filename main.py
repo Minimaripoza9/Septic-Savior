@@ -20,7 +20,7 @@ screen_rect = pygame.rect.Rect(0, 0, 640, 480)
 screen = pygame.display.set_mode(screen_rect.bottomright, 0, 32)
 
 button_font = pygame.font.Font("assets/fonts/BoldPixels.ttf", 40)
-g_font = pygame.font.SysFont("assets/fonts/BoldPixels.ttf", 30)
+g_font = pygame.font.Font("assets/fonts/BoldPixels.ttf", 30)
 
 FPS = 60
 clock = pygame.time.Clock()
@@ -217,13 +217,16 @@ def game_loop(time_limit):
                                   f"{":0" if (metronome < 10) else ":"}{metronome}", True, "#24ece9")
         screen.blit(text, (screen_rect.centerx-(text.get_width()/2), 0))
 
+        
+
         text = g_font.render(f"LV: {stringbean.level}", True, GREEN)
         screen.blit(text, (10, 0))
+
         text = g_font.render(f"enemies: {enemy_group.__len__()}", True, RED)
         screen.blit(text, (0, 415))
+
         text = g_font.render(f"enemy lv: {enemy_level}", True, RED)
         screen.blit(text, (0, 445))
-        #/testing stuffs
 
         enemy_group.draw(screen)
         stringbean.bullet_group.draw(screen)
