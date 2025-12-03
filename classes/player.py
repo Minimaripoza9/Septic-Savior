@@ -93,8 +93,10 @@ class Player(pygame.sprite.Sprite):
         self.damage = int(lerp(1, 400, self.level/100))
         self.rof = lerp(FIRE_RATE, 1, self.level/100)
         self.MAXHP = lerp(3, 10, self.level/100)
-        if not self.xp%5000:
+        self.regen = True
+        if self.xp > 4000 and self.regen:
             self.hp = int(self.MAXHP)
+            self.regen = False
 
         #reset acceleration vector
         self.acceleration = vec2(0, 0)

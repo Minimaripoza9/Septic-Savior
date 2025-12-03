@@ -21,7 +21,7 @@ screen_rect = pygame.rect.Rect(0, 0, 640, 480)
 screen = pygame.display.set_mode(screen_rect.bottomright, 0, 32)
 
 button_font = pygame.font.SysFont("Phosphate", 40)
-font = pygame.font.SysFont("Phospate", 15)
+g_font = pygame.font.SysFont("Phosphate", 30)
 
 FPS = 60
 clock = pygame.time.Clock()
@@ -122,6 +122,7 @@ def game_loop(time_limit):
     pygame.mixer.music.play(256)
 
     bark = pygame.mixer.Sound("assets/Sounds/BARK.ogg")
+    bark.set_volume(0.25)
     chop = pygame.mixer.Sound("assets/Sounds/DRONE.ogg")
     roar = pygame.mixer.Sound("assets/Sounds/BOSS_SCARY.ogg")
     oof = pygame.mixer.Sound("assets/Sounds/DEATH.ogg")
@@ -181,7 +182,7 @@ def game_loop(time_limit):
                 bark.play()
                 wave_num +=1
 
-            if seconds == 30 and minutes > 0 and metronome == 0:
+            if (not seconds%30) and minutes > 0 and metronome == 0:
                 enemy_group.add(spawn_wave(Drone, enemy_level, 10))
                 chop.play()
                 wave_num += 1
@@ -190,12 +191,13 @@ def game_loop(time_limit):
                 enemy_group.add(spawn_wave(Hound, enemy_level, 3 * minutes))
                 bark.play()
 
-            if (not seconds%30) and minutes > 3 and metronome == 0:
+            if (not seconds%30) and minutes > 1 and metronome == 0:
                 enemy_group.add(spawn_wave(Drone, enemy_level, 3 * minutes))
                 chop.play()
                 
-        if (not minutes % 5) and seconds == 00 and metronome == 0:
-            enemy_group.add(spawn_wave(Boss, enemy_level, minutes//5))
+        if minutes > 0 and (not minutes % 3) and seconds == 00 and metronome == 0:
+            enemy_group.add(spawn_wave(Boss, enemy_level, minutes//3))
+            
             roar.play()
             pygame.mixer.music.stop()
             pygame.mixer.music.unload()
@@ -207,30 +209,21 @@ def game_loop(time_limit):
 
         #UI display
         
-        pygame.draw.rect(screen, "#1bd506", (25, 25, 100 * (stringbean.stamina/100), 10))
+        pygame.draw.rect(screen, "#1bd506", (screen_rect.w - 125, 5, 100 * (stringbean.stamina/100), 15))
         for hp in range(stringbean.hp, 0, -1):
-            pygame.draw.rect(screen, "#ff0000", ((30*hp-5), 50, 25, 25))
+            pygame.draw.rect(screen, "#ff0000", (50+(30*hp-5), 5, 25, 25))
 
-        #testing stuffs
-        text = font.render(f"xp: {stringbean.xp}", True, GREEN)
-        screen.blit(text, (0, 0))
-        text = font.render(f"level: {stringbean.level}", True, GREEN)
-        screen.blit(text, (0, 20))
-        text = font.render(f"damage: {stringbean.damage}", True, RED)
-        screen.blit(text, (250, 0))
-        text = font.render(f"fire_rate: {stringbean.rof}", True, RED)
-        screen.blit(text, (250, 40))
-        text = button_font.render(f"Time: {minutes}:{seconds}:{metronome}", True, BLUE)
-        screen.blit(text, (250, 20))
-        text = font.render(f"HEALTH: {stringbean.hp}/{stringbean.MAXHP}", True, RED)
-        screen.blit(text, (400, 0))
-        text = font.render(f"STAMINA: {stringbean.stamina}/100", True, RED)
-        screen.blit(text, (400, 20))
+        text = g_font.render(f"{" 0" if (minutes < 10) else " "}{minutes}" +
+                                  f"{":0" if (seconds < 10) else ":"}{seconds}" +
+                                  f"{":0" if (metronome < 10) else ":"}{metronome}", True, "#24ece9")
+        screen.blit(text, (screen_rect.centerx-(text.get_width()/2), 0))
 
-        text = font.render(f"enemy count: {enemy_group.__len__()}", True, GREEN)
-        screen.blit(text, (0, 400))
-        text = font.render(f"enemy level: {enemy_level}", True, GREEN)
-        screen.blit(text, (0, 420))
+        text = g_font.render(f"LV: {stringbean.level}", True, GREEN)
+        screen.blit(text, (10, 0))
+        text = g_font.render(f"enemies: {enemy_group.__len__()}", True, RED)
+        screen.blit(text, (0, 415))
+        text = g_font.render(f"enemy lv: {enemy_level}", True, RED)
+        screen.blit(text, (0, 445))
         #/testing stuffs
 
         enemy_group.draw(screen)
